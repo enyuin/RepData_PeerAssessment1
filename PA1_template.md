@@ -5,23 +5,21 @@ output:
     keep_md: true
 ---
 
-```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
-library(ggplot2)
-library(scales)
-library(Hmisc)
-```
+
 
 ## Loading and preprocessing the data
 
 ##### 1. Load the data (i.e. read.csv())
-```{r, results='markup', warning=TRUE, message=TRUE}
+
+```r
 if(!file.exists('activity.csv')){
     unzip('activity.zip')
 }
 data <- read.csv('activity.csv')
 ```
 ##### 2. Process/transform the data (if necessary) into a format suitable for your analysis
-```{r}
+
+```r
 #data$interval <- strptime(gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", data$interval), format='%H:%M')
 ```
 
@@ -30,87 +28,105 @@ data <- read.csv('activity.csv')
 ## What is mean total number of steps taken per day?
 
 ##### 1. Calculate the total number of steps taken per day
-```{r}
+
+```r
 stepsTakenDay <- tapply(data$steps, data$date, sum, na.rm=TRUE)
 ```
 
 ##### 2. Make a histogram of the total number of steps taken each day
-```{r}
+
+```r
 qplot(stepsTakenDay, xlab='Total steps per day', ylab='Frequency using binwith 500', binwidth=500)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
 ##### 3. Calculate and report the mean and median total number of steps taken per day
-```{r}
+
+```r
 stepsTakenDayMean <- mean(stepsTakenDay)
 stepsTakenDayMedian <- median(stepsTakenDay)
 ```
-* Mean: `r stepsTakenDayMean`
-* Median:  `r stepsTakenDayMedian`
+* Mean: 9354.2295082
+* Median:  10395
 
 -----
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 averageSteps <- aggregate(x=list(meanSteps=data$steps), by=list(interval=data$interval), FUN=mean, na.rm=TRUE)
 ```
 
 ##### 1. Make a time series plot of the 5-min interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r}
+
+```r
 ggplot(data=averageSteps, aes(x=interval, y=meanSteps)) +
     geom_line() +
     xlab("5-min interval") +
     ylab("Average no. of steps taken") 
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
 ##### 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r}
+
+```r
 maxSteps <- which.max(averageSteps$meanSteps)
 maxSteps_Time <-  gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", averageSteps[maxSteps,'interval'])
 ```
 
-* Maximum number of steps at: `r maxSteps_Time`
+* Maximum number of steps at: 8:35
 
 ----
 
 ## Imputing missing values
 
 ##### 1. Calculate and report the total number of missing values in the dataset 
-```{r}
+
+```r
 numNA <- length(which(is.na(data$steps)))
 ```
 
-* Number of missing values are : `r numNA`
+* Number of missing values are : 2304
 
 ##### 2. Devise a strategy for filling in all of the missing values in the dataset.
-```{r}
+
+```r
 data_mod <- data
 ```
 ##### 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
-```{r}
+
+```r
 data_mod$steps <- impute(data$steps, fun=mean)
 ```
 
 ##### 4. Make a histogram of the total number of steps taken each day and calculate and report the mean and median total number of steps taken per day. 
-```{r}
+
+```r
 stepsTakenDay_mod <- tapply(data_mod$steps, data_mod$date, sum)
 qplot(stepsTakenDay_mod, xlab='Total steps per day (Modified)', ylab='Frequency', binwidth=500)
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
+```r
 stepsTakenDayMean_mod <- mean(stepsTakenDay_mod)
 stepsTakenDayMedian_mod <- median(stepsTakenDay_mod)
 ```
-* Mean is: `r stepsTakenDayMean_mod`
-* Median is:  `r stepsTakenDayMedian_mod`
+* Mean is: 1.0766189\times 10^{4}
+* Median is:  1.0766189\times 10^{4}
 
 ##### 5. Do these values differ from the estimates from the first part of the assignment? 
 
 ##### Origin
-* Mean: `r stepsTakenDayMean`
-* Median:  `r stepsTakenDayMedian`
+* Mean: 9354.2295082
+* Median:  10395
 
 ##### After Impute
-* Mean is: `r stepsTakenDayMean_mod`
-* Median is:  `r stepsTakenDayMedian_mod`
+* Mean is: 1.0766189\times 10^{4}
+* Median is:  1.0766189\times 10^{4}
 
 ###### It can be seem that both of the values differ slightly.
 
@@ -124,13 +140,15 @@ stepsTakenDayMedian_mod <- median(stepsTakenDay_mod)
 
 ##### 1. Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
-```{r}
+
+```r
 data_mod$dateType <-  ifelse(as.POSIXlt(data_mod$date)$wday %in% c(0,6), 'weekend', 'weekday')
 ```
 
 ##### 2. Make a panel plot containing a time series plot of the 50min interval(x-axis) and the average nomber of steps taken, averaged across all weekdays days or weekend days (y-axis).
 
-```{r}
+
+```r
 averaged <- aggregate(steps ~ interval + dateType, data=data_mod, mean)
 ggplot(averaged, aes(interval, steps)) + 
     geom_line() + 
@@ -138,3 +156,5 @@ ggplot(averaged, aes(interval, steps)) +
     xlab("5-min interval") + 
     ylab("Average no. of steps")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
